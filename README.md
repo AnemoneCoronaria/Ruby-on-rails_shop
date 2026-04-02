@@ -85,3 +85,26 @@ http://localhost:3000
 역할: buyer
 
 ```
+### 메인 페이지
+
+<img width="941" height="473" alt="image" src="https://github.com/user-attachments/assets/576191c1-587d-4bd8-b0e4-f6291de3656e" />
+
+### 메인 페이지 하단
+<img width="941" height="440" alt="image" src="https://github.com/user-attachments/assets/ef7a30b5-c6f6-42be-9535-c22c579e2a65" />
+
+### 로그인 창
+<img width="936" height="474" alt="image" src="https://github.com/user-attachments/assets/5e2b7aeb-9b8e-4806-9029-9f750c5eabd1" />
+
+### 전체 상품
+<img width="938" height="473" alt="image" src="https://github.com/user-attachments/assets/4e6f94a5-a57a-42d6-8064-3df74b498cfd" />
+
+### 문의 게시판 
+<img width="939" height="476" alt="image" src="https://github.com/user-attachments/assets/c90a4d37-ab2a-42e5-b410-23fab3a706f9" />
+
+### 관리자 대시보드
+<img width="943" height="440" alt="image" src="https://github.com/user-attachments/assets/a46549ff-7596-45fe-ba73-745e65003b7b" />
+
+### 장바구니
+<img width="950" height="474" alt="image" src="https://github.com/user-attachments/assets/ce3d84e9-4481-4961-9482-4d91b228fb0f" />
+
+
