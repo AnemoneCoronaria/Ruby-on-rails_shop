@@ -107,4 +107,7 @@ http://localhost:3000
 ### 장바구니
 <img width="950" height="474" alt="image" src="https://github.com/user-attachments/assets/ce3d84e9-4481-4961-9482-4d91b228fb0f" />
 
+### 원하는 태그 설정 시 추천 기능
+<img width="824" height="400" alt="image" src="https://github.com/user-attachments/assets/8ce937e1-1031-4ea9-be05-8fd73db85f40" />
+
 
