@@ -1,0 +1,177 @@
+<% content_for :title, "내 키워드 설정" %>
+
+<div class="bg-brand-soft py-4 border-bottom">
+  <div class="container">
+    <h1 class="section-title mb-1">내 키워드 설정</h1>
+    <p class="text-muted small mb-0">관심 있는 키워드를 선택하면 맞춤 상품을 추천받을 수 있습니다.</p>
+  </div>
+</div>
+
+<div class="container py-5" style="max-width:900px;">
+  <!-- Selected Keywords Preview -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4" style="background:linear-gradient(135deg,#1a1a2e,#0f3460);color:white;">
+    <p class="small mb-2" style="color:rgba(255,255,255,0.6);">내 관심 키워드 (클릭하면 삭제)</p>
+    <div id="selected-preview" class="d-flex flex-wrap gap-2 min-height-2">
+      <% if current_user.keywords.any? %>
+        <% current_user.keywords.each do |kw| %>
+          <span class="keyword-tag active" data-kw-preview="<%= kw.name %>" data-kw-id="<%= kw.id %>" style="cursor:pointer; background:#e8b86d; color:#1a1a2e;">
+            <i class="bi bi-hash" style="font-size:0.7rem;"></i><%= kw.name %>
+            <i class="bi bi-x-lg ms-1" style="font-size:0.7rem;"></i>
+          </span>
+        <% end %>
+      <% else %>
+        <span id="no-keyword-msg" style="color:rgba(255,255,255,0.4);font-size:0.875rem;">아래에서 키워드를 선택해주세요</span>
+      <% end %>
+    </div>
+  </div>
+
+  <%= form_with url: update_keywords_path, method: :patch, local: true, id: "keyword-form" do |f| %>
+    <% Keyword.grouped.each do |category, keywords| %>
+      <div class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+        <h6 class="fw-semibold mb-3">
+          <i class="bi bi-<%= keywords.first.icon %> me-2 text-brand-accent"></i>
+          <%= category %>
+        </h6>
+        <div class="keyword-picker-grid">
+          <% keywords.each do |kw| %>
+            <% checked = current_user.keywords.include?(kw) %>
+            <button type="button" 
+                    class="keyword-picker-btn <%= 'selected' if checked %>"
+                    data-keyword-id="<%= kw.id %>"
+                    data-keyword-name="<%= kw.name %>"
+                    onclick="toggleKeyword(this, <%= kw.id %>, '<%= kw.name %>')">
+              #<%= kw.name %>
+            </button>
+            <input type="checkbox" 
+                   name="keyword_ids[]" 
+                   value="<%= kw.id %>" 
+                   id="keyword_<%= kw.id %>" 
+                   <%= 'checked' if checked %>
+                   style="display: none;">
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="d-flex gap-2 justify-content-end">
+      <%= link_to root_path, class: "btn btn-outline-secondary" do %>취소<% end %>
+      <%= f.submit "키워드 저장하기", class: "btn btn-primary px-5" %>
+    </div>
+  <% end %>
+</div>
+
+<script>
+// 선택된 키워드 목록 (ID와 이름 저장)
+let selectedKeywords = [];
+
+// 페이지 로드 시 초기화
+document.addEventListener('DOMContentLoaded', function() {
+  console.log("✅ 키워드 설정 페이지 로드");
+  
+  // 초기 선택된 키워드 수집
+  const initialCheckboxes = document.querySelectorAll('input[name="keyword_ids[]"]:checked');
+  initialCheckboxes.forEach(function(cb) {
+    const btn = document.querySelector(`button[data-keyword-id="${cb.value}"]`);
+    if (btn) {
+      selectedKeywords.push({
+        id: parseInt(cb.value),
+        name: btn.getAttribute('data-keyword-name')
+      });
+    }
+  });
+  
+  // 선택된 키워드 UI 업데이트
+  updateSelectedPreview();
+});
+
+function toggleKeyword(button, keywordId, keywordName) {
+  const checkbox = document.getElementById(`keyword_${keywordId}`);
+  
+  if (checkbox) {
+    if (checkbox.checked) {
+      // 이미 선택된 상태 -> 제거
+      checkbox.checked = false;
+      button.classList.remove('selected');
+      // selectedKeywords 배열에서 제거
+      selectedKeywords = selectedKeywords.filter(kw => kw.id !== keywordId);
+    } else {
+      // 선택 안된 상태 -> 추가
+      checkbox.checked = true;
+      button.classList.add('selected');
+      // selectedKeywords 배열에 추가 (중복 방지)
+      if (!selectedKeywords.some(kw => kw.id === keywordId)) {
+        selectedKeywords.push({ id: keywordId, name: keywordName });
+      }
+    }
+    
+    // UI 업데이트
+    updateSelectedPreview();
+  }
+}
+
+function removeKeywordFromPreview(keywordId) {
+  // 체크박스 찾기
+  const checkbox = document.getElementById(`keyword_${keywordId}`);
+  const button = document.querySelector(`button[data-keyword-id="${keywordId}"]`);
+  
+  if (checkbox && button) {
+    // 체크박스 체크 해제
+    checkbox.checked = false;
+    // 버튼 스타일 제거
+    button.classList.remove('selected');
+    // 배열에서 제거
+    selectedKeywords = selectedKeywords.filter(kw => kw.id !== keywordId);
+    
+    // UI 업데이트
+    updateSelectedPreview();
+  }
+}
+
+function updateSelectedPreview() {
+  const container = document.getElementById('selected-preview');
+  const noMsg = document.getElementById('no-keyword-msg');
+  
+  if (!container) return;
+  
+  // 기존 내용 지우기 (키워드 태그만)
+  const existingTags = container.querySelectorAll('[data-kw-preview]');
+  existingTags.forEach(tag => tag.remove());
+  
+  if (selectedKeywords.length === 0) {
+    if (!noMsg) {
+      const msg = document.createElement('span');
+      msg.id = 'no-keyword-msg';
+      msg.style.cssText = 'color:rgba(255,255,255,0.4);font-size:0.875rem;';
+      msg.textContent = '아래에서 키워드를 선택해주세요';
+      container.appendChild(msg);
+    }
+    return;
+  }
+  
+  if (noMsg) noMsg.remove();
+  
+  // 선택된 키워드 표시
+  selectedKeywords.forEach(kw => {
+    const tag = document.createElement('span');
+    tag.className = 'keyword-tag active';
+    tag.setAttribute('data-kw-preview', kw.name);
+    tag.setAttribute('data-kw-id', kw.id);
+    tag.style.cssText = 'cursor:pointer; background:#e8b86d; color:#1a1a2e;';
+    tag.innerHTML = `<i class="bi bi-hash" style="font-size:0.7rem;"></i>${kw.name}<i class="bi bi-x-lg ms-1" style="font-size:0.7rem;"></i>`;
+    tag.onclick = function() { removeKeywordFromPreview(kw.id); };
+    container.appendChild(tag);
+  });
+}
+
+// 폼 제출 시 모든 체크박스 활성화
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('keyword-form');
+  if (form) {
+    form.addEventListener('submit', function() {
+      document.querySelectorAll('input[name="keyword_ids[]"]').forEach(function(input) {
+        input.disabled = false;
+      });
+    });
+  }
+});
+</script>

@@ -1,0 +1,47 @@
+<% content_for :title, "문의 수정" %>
+
+<div class="container py-5" style="max-width:700px;">
+  <h1 class="section-title mb-4">문의 수정</h1>
+
+  <%= form_with model: @inquiry, local: true do |f| %>
+    <% if @inquiry.errors.any? %>
+      <div class="alert alert-danger rounded-3">
+        <ul class="mb-0"><% @inquiry.errors.full_messages.each do |m| %><li><%= m %></li><% end %></ul>
+      </div>
+    <% end %>
+
+    <div class="card border-0 shadow-sm rounded-4 p-4">
+      <div class="mb-3">
+        <%= f.label :category, "문의 유형", class: "form-label fw-medium" %>
+        <%= f.select :category, ["상품 문의", "배송 문의", "교환/환불", "결제 문의", "기타"],
+            { prompt: "문의 유형을 선택하세요" }, class: "form-select" %>
+      </div>
+
+      <div class="mb-3">
+        <%= f.label :product_id, "관련 상품 (선택)", class: "form-label fw-medium" %>
+        <%= f.select :product_id, Product.all.map{|p| [p.name, p.id]},
+            { prompt: "상품을 선택하세요 (선택사항)" }, class: "form-select" %>
+      </div>
+
+      <div class="mb-3">
+        <%= f.label :title, "제목", class: "form-label fw-medium" %>
+        <%= f.text_field :title, class: "form-control", placeholder: "문의 제목을 입력하세요" %>
+      </div>
+
+      <div class="mb-3">
+        <%= f.label :content, "내용", class: "form-label fw-medium" %>
+        <%= f.text_area :content, rows: 8, class: "form-control", placeholder: "문의 내용을 자세히 입력해주세요" %>
+      </div>
+
+      <div class="form-check mb-4">
+        <%= f.check_box :is_private, class: "form-check-input" %>
+        <%= f.label :is_private, "비공개 문의 (나와 관리자만 볼 수 있습니다)", class: "form-check-label small text-muted" %>
+      </div>
+
+      <div class="d-flex gap-2 justify-content-end">
+        <%= link_to "취소", inquiries_path, class: "btn btn-outline-secondary" %>
+        <%= f.submit "수정 저장", class: "btn btn-primary px-4" %>
+      </div>
+    </div>
+  <% end %>
+</div>

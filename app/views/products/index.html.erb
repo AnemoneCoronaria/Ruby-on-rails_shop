@@ -1,0 +1,90 @@
+<% content_for :title, "전체 상품" %>
+
+<div class="bg-brand-soft py-4 border-bottom">
+  <div class="container">
+    <h1 class="section-title mb-1">전체 상품</h1>
+    <p class="text-muted small mb-0">다양한 상품을 만나보세요</p>
+  </div>
+</div>
+
+<div class="container py-4">
+  <div class="row">
+    <!-- 필터 사이드바 -->
+    <div class="col-lg-3 mb-4">
+      <div class="filter-card">
+        <h6>검색</h6>
+        <%= form_with url: products_path, method: :get, local: true do |f| %>
+          <div class="input-group mb-3">
+            <%= f.text_field :q, value: params[:q], class: "form-control", placeholder: "상품명 검색" %>
+            <%= f.hidden_field :sort, value: params[:sort] %>
+            <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
+          </div>
+        <% end %>
+
+        <hr>
+        
+        <h6>정렬</h6>
+        <div class="d-flex flex-column gap-2 mb-3">
+          <%= link_to "최신순", products_path(sort: 'latest', q: params[:q], keywords: params[:keywords]), class: "btn btn-sm #{params[:sort] == 'latest' || params[:sort].blank? ? 'btn-primary' : 'btn-outline-secondary'}" %>
+          <%= link_to "인기순", products_path(sort: 'popular', q: params[:q], keywords: params[:keywords]), class: "btn btn-sm #{params[:sort] == 'popular' ? 'btn-primary' : 'btn-outline-secondary'}" %>
+          <%= link_to "낮은 가격순", products_path(sort: 'price_asc', q: params[:q], keywords: params[:keywords]), class: "btn btn-sm #{params[:sort] == 'price_asc' ? 'btn-primary' : 'btn-outline-secondary'}" %>
+          <%= link_to "높은 가격순", products_path(sort: 'price_desc', q: params[:q], keywords: params[:keywords]), class: "btn btn-sm #{params[:sort] == 'price_desc' ? 'btn-primary' : 'btn-outline-secondary'}" %>
+        </div>
+
+        <hr>
+        
+        <h6>키워드 필터</h6>
+        <div class="keyword-picker-grid mb-3">
+          <% Keyword.limit(20).each do |kw| %>
+            <%= link_to "##{kw.name}", products_path(keywords: kw.name, sort: params[:sort], q: params[:q]), class: "keyword-picker-btn #{params[:keywords] == kw.name ? 'selected' : ''}" %>
+          <% end %>
+        </div>
+
+        <hr>
+        
+        <h6>가격 범위</h6>
+        <%= form_with url: products_path, method: :get, local: true do |f| %>
+          <div class="row g-2">
+            <div class="col-5">
+              <%= f.number_field :min_price, value: params[:min_price], class: "form-control", placeholder: "최소" %>
+            </div>
+            <div class="col-2 text-center pt-2">~</div>
+            <div class="col-5">
+              <%= f.number_field :max_price, value: params[:max_price], class: "form-control", placeholder: "최대" %>
+            </div>
+          </div>
+          <%= f.hidden_field :sort, value: params[:sort] %>
+          <%= f.hidden_field :q, value: params[:q] %>
+          <%= f.hidden_field :keywords, value: params[:keywords] %>
+          <div class="mt-2">
+            <button type="submit" class="btn btn-primary w-100 btn-sm">적용</button>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- 상품 목록 -->
+    <div class="col-lg-9">
+      <% if @products.any? %>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+          <% @products.each do |product| %>
+            <div class="col">
+              <%= render 'products/card', product: product, matched: false %>
+            </div>
+          <% end %>
+        </div>
+        
+        <!-- 페이지네이션 -->
+        <div class="d-flex justify-content-center mt-5">
+          <%= paginate @products %>
+        </div>
+      <% else %>
+        <div class="empty-state">
+          <i class="bi bi-box-seam empty-icon d-block"></i>
+          <h5>상품이 없습니다</h5>
+          <p class="text-muted small">조건에 맞는 상품이 존재하지 않습니다.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

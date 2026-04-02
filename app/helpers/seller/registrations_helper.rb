@@ -1,0 +1,2 @@
+module Seller::RegistrationsHelper
+end

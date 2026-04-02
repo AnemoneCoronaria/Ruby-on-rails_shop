@@ -1,0 +1,218 @@
+<% content_for :title, "상품 등록" %>
+
+<div class="bg-brand-soft py-4 border-bottom">
+  <div class="container">
+    <h1 class="section-title mb-0">상품 등록</h1>
+    <p class="text-muted small mb-0">판매할 상품 정보를 입력해주세요</p>
+  </div>
+</div>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <%= form_with model: @product, local: true, multipart: true do |f| %>
+        <% if @product.errors.any? %>
+          <div class="alert alert-danger rounded-3">
+            <strong>오류가 있습니다:</strong>
+            <ul class="mb-0 mt-1">
+              <% @product.errors.full_messages.each do |msg| %>
+                <li><%= msg %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+          <h5 class="fw-semibold mb-3">기본 정보</h5>
+          <div class="mb-3">
+            <%= f.label :name, "상품명", class: "form-label fw-medium" %>
+            <%= f.text_field :name, class: "form-control", placeholder: "상품 이름을 입력하세요" %>
+          </div>
+          <div class="mb-3">
+            <%= f.label :description, "상품 설명", class: "form-label fw-medium" %>
+            <%= f.text_area :description, rows: 5, class: "form-control", placeholder: "상품에 대해 자세히 설명해주세요" %>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <%= f.label :price, "판매가 (원)", class: "form-label fw-medium" %>
+              <%= f.number_field :price, class: "form-control", placeholder: "0", min: 0 %>
+            </div>
+            <div class="col-md-6">
+              <%= f.label :stock, "재고 수량", class: "form-label fw-medium" %>
+              <%= f.number_field :stock, class: "form-control", placeholder: "0", min: 0 %>
+            </div>
+          </div>
+          <div class="mt-3">
+            <%= f.label :discount_rate, "할인율 (%)", class: "form-label fw-medium" %>
+            <%= f.number_field :discount_rate, class: "form-control", placeholder: "0", min: 0, max: 99 %>
+            <div class="form-text">0~99 사이의 숫자를 입력하세요. 할인을 적용하지 않으려면 0을 입력하세요.</div>
+          </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+          <h5 class="fw-semibold mb-3">상품 이미지</h5>
+          <%= f.file_field :image, class: "form-control", accept: "image/*" %>
+          <p class="text-muted small mt-1">JPG, PNG, WEBP 지원. 최대 5MB.</p>
+        </div>
+
+        <!-- 키워드 태그 선택 -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+          <h5 class="fw-semibold mb-1">키워드 태그 설정</h5>
+          <p class="text-muted small mb-3">상품에 해당하는 키워드를 선택하세요.</p>
+
+          <% if Keyword.any? %>
+            <% Keyword.grouped.each do |category, keywords| %>
+              <div class="mb-3">
+                <h6 class="fw-semibold mb-2"><%= category %></h6>
+                <div class="keyword-picker-grid">
+                  <% keywords.each do |kw| %>
+                    <% checked = @product.keyword_ids.include?(kw.id) %>
+                    <button type="button" 
+                            class="keyword-picker-btn <%= 'selected' if checked %>"
+                            data-keyword-id="<%= kw.id %>"
+                            data-keyword-name="<%= kw.name %>"
+                            onclick="toggleKeyword(this, <%= kw.id %>, '<%= kw.name %>')">
+                      #<%= kw.name %>
+                    </button>
+                    <input type="checkbox" 
+                           name="product[keyword_ids][]" 
+                           value="<%= kw.id %>" 
+                           id="keyword_<%= kw.id %>" 
+                           <%= 'checked' if checked %>
+                           style="display: none;">
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          <% else %>
+            <p class="text-muted">키워드가 없습니다. 관리자에게 문의하세요.</p>
+          <% end %>
+
+          <!-- 선택된 키워드 표시 영역 -->
+          <div class="mt-3 pt-2 border-top" id="selected-keywords-area" style="display: none;">
+            <p class="small fw-semibold mb-2 text-muted">선택된 키워드 (클릭하면 삭제)</p>
+            <div id="selected-keywords-list" class="d-flex flex-wrap gap-2"></div>
+          </div>
+
+          <div class="text-muted small mt-2">
+            <i class="bi bi-info-circle me-1"></i>선택된 키워드: <strong id="keyword-count"><%= @product.keywords.count %></strong>개
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 justify-content-end">
+          <%= link_to "취소", products_path, class: "btn btn-outline-secondary" %>
+          <%= f.submit "상품 등록하기", class: "btn btn-primary px-4" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+// 선택된 키워드 목록 (ID와 이름 저장)
+let selectedKeywords = [];
+
+// 페이지 로드 시 초기화
+document.addEventListener('DOMContentLoaded', function() {
+  console.log("✅ 페이지 로드 완료");
+  
+  // 초기 선택된 키워드 수집
+  const initialCheckboxes = document.querySelectorAll('input[name="product[keyword_ids][]"]:checked');
+  initialCheckboxes.forEach(function(cb) {
+    const btn = document.querySelector(`button[data-keyword-id="${cb.value}"]`);
+    if (btn) {
+      selectedKeywords.push({
+        id: parseInt(cb.value),
+        name: btn.getAttribute('data-keyword-name')
+      });
+    }
+  });
+  
+  // 선택된 키워드 UI 업데이트
+  updateSelectedKeywordsUI();
+  updateKeywordCount();
+});
+
+function toggleKeyword(button, keywordId, keywordName) {
+  const checkbox = document.getElementById(`keyword_${keywordId}`);
+  
+  if (checkbox) {
+    if (checkbox.checked) {
+      // 이미 선택된 상태 -> 제거
+      checkbox.checked = false;
+      button.classList.remove('selected');
+      // selectedKeywords 배열에서 제거
+      selectedKeywords = selectedKeywords.filter(kw => kw.id !== keywordId);
+    } else {
+      // 선택 안된 상태 -> 추가
+      checkbox.checked = true;
+      button.classList.add('selected');
+      // selectedKeywords 배열에 추가 (중복 방지)
+      if (!selectedKeywords.some(kw => kw.id === keywordId)) {
+        selectedKeywords.push({ id: keywordId, name: keywordName });
+      }
+    }
+    
+    // UI 업데이트
+    updateSelectedKeywordsUI();
+    updateKeywordCount();
+  }
+}
+
+function removeKeyword(keywordId) {
+  // 체크박스 찾기
+  const checkbox = document.getElementById(`keyword_${keywordId}`);
+  const button = document.querySelector(`button[data-keyword-id="${keywordId}"]`);
+  
+  if (checkbox && button) {
+    // 체크박스 체크 해제
+    checkbox.checked = false;
+    // 버튼 스타일 제거
+    button.classList.remove('selected');
+    // 배열에서 제거
+    selectedKeywords = selectedKeywords.filter(kw => kw.id !== keywordId);
+    
+    // UI 업데이트
+    updateSelectedKeywordsUI();
+    updateKeywordCount();
+  }
+}
+
+function updateSelectedKeywordsUI() {
+  const container = document.getElementById('selected-keywords-list');
+  const area = document.getElementById('selected-keywords-area');
+  
+  if (!container) return;
+  
+  if (selectedKeywords.length === 0) {
+    area.style.display = 'none';
+    return;
+  }
+  
+  area.style.display = 'block';
+  
+  // HTML 생성
+  let html = '';
+  selectedKeywords.forEach(kw => {
+    html += `
+      <span class="tag-chip matched" style="cursor:pointer; padding: 4px 12px; background: #1a1a2e; color: white; border: none;" 
+            onclick="removeKeyword(${kw.id})" 
+            title="클릭하여 삭제">
+        #${kw.name}
+        <i class="bi bi-x-lg ms-1" style="font-size: 0.7rem;"></i>
+      </span>
+    `;
+  });
+  
+  container.innerHTML = html;
+}
+
+function updateKeywordCount() {
+  const checkedBoxes = document.querySelectorAll('input[name="product[keyword_ids][]"]:checked');
+  const countEl = document.getElementById('keyword-count');
+  
+  if (countEl) {
+    countEl.textContent = checkedBoxes.length;
+  }
+}
+</script>

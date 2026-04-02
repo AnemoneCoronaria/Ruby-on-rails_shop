@@ -1,0 +1,104 @@
+<div class="card product-card h-100">
+  <div class="card-img-wrapper position-relative" style="height: 220px; overflow: hidden;">
+    <% if product.image.attached? %>
+      <%= image_tag product.image, class: "card-img-top w-100 h-100", alt: product.name, style: "object-fit: cover;" %>
+    <% else %>
+      <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
+        <i class="bi bi-image text-muted" style="font-size:2rem;"></i>
+      </div>
+    <% end %>
+
+    <!-- 할인 배지 (왼쪽 상단) -->
+    <% if product.discount_rate > 0 %>
+      <span class="discount-badge-top" style="position: absolute; top: 12px; left: 12px; background: #e74c3c; color: white; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; z-index: 2;">
+        <%= product.discount_rate %>% OFF
+      </span>
+    <% end %>
+
+    <!-- 맞춤 배지 (오른쪽 상단) -->
+    <% if matched %>
+      <span class="match-badge-top" style="position: absolute; top: 12px; right: 12px; background: #1a1a2e; color: white; font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; z-index: 2;">
+        <i class="bi bi-stars"></i> 맞춤
+      </span>
+    <% end %>
+
+    <!-- 찜하기 버튼 -->
+    <% if user_signed_in? %>
+      <% if current_user.wishlist&.products&.include?(product) %>
+        <%= button_to wishlist_item_path(product), method: :delete, class: "card-wishlist", title: "찜 취소", style: "position: absolute; bottom: 12px; right: 12px; background: white; border: none; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" do %>
+          <i class="bi bi-heart-fill" style="color: #e74c3c;"></i>
+        <% end %>
+      <% else %>
+        <%= button_to wishlist_items_path, method: :post, params: { product_id: product.id }, class: "card-wishlist", title: "찜하기", style: "position: absolute; bottom: 12px; right: 12px; background: white; border: none; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" do %>
+          <i class="bi bi-heart"></i>
+        <% end %>
+      <% end %>
+    <% else %>
+      <button class="card-wishlist" onclick="alert('로그인이 필요합니다'); return false;" style="position: absolute; bottom: 12px; right: 12px; background: white; border: none; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        <i class="bi bi-heart"></i>
+      </button>
+    <% end %>
+  </div>
+
+  <div class="card-body d-flex flex-column p-3" style="flex: 1;">
+    <!-- 매칭 배지 (본문 내) -->
+    <% if matched && defined?(user_keywords) && product.keyword_names.present? %>
+      <div class="match-badge mb-2" style="display: inline-flex; align-items: center; gap: 4px; background: rgba(232,184,109,0.12); border: 1px solid rgba(232,184,109,0.3); color: #a07830; font-size: 0.7rem; font-weight: 600; padding: 3px 8px; border-radius: 50px; width: fit-content;">
+        <i class="bi bi-lightning-fill" style="font-size:0.6rem;"></i>
+        <%= (product.keyword_names & user_keywords).first(2).map{|k|"##{k}"}.join(" ") %> 매칭
+      </div>
+    <% end %>
+
+    <!-- 판매자명 (고정 높이) -->
+    <p class="card-category text-muted small mb-1" style="font-size: 0.7rem; min-height: 20px;">
+      <%= product.seller.store_name || product.seller.name %>
+    </p>
+
+    <!-- 상품명 (2줄 고정, 말줄임표) -->
+    <h6 class="card-title fw-semibold mb-2" style="font-size: 0.95rem; line-height: 1.4; height: 2.8rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+      <%= product.name %>
+    </h6>
+
+    <!-- 가격 정보 (고정 높이) -->
+    <div class="mt-auto" style="min-height: 70px;">
+      <% if product.discount_rate > 0 %>
+        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+          <span class="fw-bold fs-5" style="color: #e74c3c;">
+            <%= number_to_currency(product.discounted_price, unit:"₩", precision:0) %>
+          </span>
+          <span class="text-muted text-decoration-line-through" style="font-size: 0.75rem;">
+            <%= number_to_currency(product.price, unit:"₩", precision:0) %>
+          </span>
+        </div>
+        <div class="small text-muted mb-1">
+          <span class="badge bg-danger bg-opacity-10 text-danger" style="font-size: 0.65rem;">
+            <%= product.discount_rate %>% 할인
+          </span>
+        </div>
+      <% else %>
+        <div class="fw-bold fs-5 mb-2" style="color: #1a1a2e;">
+          <%= number_to_currency(product.price, unit:"₩", precision:0) %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- 키워드 태그 (고정 높이) -->
+    <div class="card-tags d-flex flex-wrap gap-1 mt-1" style="min-height: 32px;">
+      <% product.keywords.first(3).each do |kw| %>
+        <span class="tag-chip" style="font-size: 0.65rem; padding: 2px 8px; background: #f8f6f0; border-radius: 20px;">
+          #<%= kw.name %>
+        </span>
+      <% end %>
+      <% if product.keywords.count > 3 %>
+        <span class="tag-chip" style="font-size: 0.65rem; padding: 2px 8px;">+<%= product.keywords.count - 3 %></span>
+      <% end %>
+    </div>
+
+    <!-- 버튼 (고정 위치) -->
+    <div class="mt-3 pt-2">
+      <%= link_to product_path(product), class: "btn btn-dark w-100 py-2", style: "border-radius: 8px; font-size: 0.85rem; font-weight: 500;" do %>
+        <i class="bi bi-eye me-1"></i>자세히 보기
+      <% end %>
+    </div>
+  </div>
+</div>

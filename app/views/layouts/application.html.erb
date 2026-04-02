@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= content_for?(:title) ? yield(:title) + " | " : "" %>MARKETO</title>
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg sticky-top" id="mainNav">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="<%= root_path %>">
+      <span class="brand-mark">M</span>ARKETO
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <i class="bi bi-list"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav mx-auto gap-1">
+        <li class="nav-item"><%= link_to "홈", root_path, class: "nav-link #{current_page?(root_path) ? 'active' : ''}" %></li>
+        <li class="nav-item"><%= link_to "전체 상품", products_path, class: "nav-link #{current_page?(products_path) ? 'active' : ''}" %></li>
+        <li class="nav-item"><%= link_to "문의 게시판", inquiries_path, class: "nav-link #{current_page?(inquiries_path) ? 'active' : ''}" %></li>
+      </ul>
+      <div class="d-flex align-items-center gap-3">
+        <% if user_signed_in? %>
+          <!-- 관리자 메뉴 -->
+          <% if current_user.admin? %>
+            <div class="dropdown">
+              <button class="btn btn-sm btn-outline-danger dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="bi bi-shield-lock"></i> 관리자
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><%= link_to "📊 대시보드", admin_dashboard_path, class: "dropdown-item" %></li>
+                <li><%= link_to "👥 회원 관리", admin_users_path, class: "dropdown-item" %></li>
+                <li><%= link_to "📦 상품 관리", admin_products_path, class: "dropdown-item" %></li>
+                <li><%= link_to "💬 문의 관리", admin_inquiries_path, class: "dropdown-item" %></li>
+              </ul>
+            </div>
+          <% end %>
+
+          <!-- 판매자 상품 등록 -->
+          <% if current_user.seller? %>
+            <%= link_to "상품 등록", new_product_path, class: "btn btn-sm btn-outline-primary" %>
+          <% end %>
+
+          <!-- 사용자 드롭다운 -->
+          <div class="dropdown">
+            <button class="btn btn-sm btn-nav-user dropdown-toggle" data-bs-toggle="dropdown">
+              <i class="bi bi-person-circle me-1"></i><%= current_user.name %>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><%= link_to "🔑 내 키워드 설정", edit_keywords_path, class: "dropdown-item" %></li>
+              <li><%= link_to "📝 내 문의 내역", my_inquiries_path, class: "dropdown-item" %></li>
+              <li><%= link_to "❤️ 찜한 상품", "#", class: "dropdown-item", onclick: "alert('준비 중입니다 😊'); return false;" %></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><%= button_to "🚪 로그아웃", destroy_user_session_path, method: :delete, class: "dropdown-item text-danger border-0 bg-transparent w-100 text-start" %></li>
+            </ul>
+          </div>
+        <% else %>
+          <%= link_to "로그인", new_user_session_path, class: "btn btn-sm btn-outline-secondary" %>
+          <%= link_to "회원가입", new_user_registration_path, class: "btn btn-sm btn-primary" %>
+        <% end %>
+        
+        <!-- 장바구니 -->
+        <% if user_signed_in? %>
+          <%= link_to cart_path, class: "nav-icon position-relative" do %>
+            <i class="bi bi-bag fs-5"></i>
+            <% if current_user.cart && current_user.cart.total_items > 0 %>
+              <span class="badge-dot"></span>
+            <% end %>
+          <% end %>
+        <% else %>
+          <a href="#" class="nav-icon position-relative" onclick="alert('로그인이 필요합니다 😊'); return false;">
+            <i class="bi bi-bag fs-5"></i>
+            <span class="badge-dot"></span>
+          </a>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<% if notice %>
+  <div class="alert alert-success alert-dismissible fade show m-0 rounded-0" role="alert">
+    <div class="container"><%= notice %></div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+<% end %>
+<% if alert %>
+  <div class="alert alert-danger alert-dismissible fade show m-0 rounded-0" role="alert">
+    <div class="container"><%= alert %></div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+<% end %>
+
+<main><%= yield %></main>
+
+<footer class="site-footer mt-5">
+  <div class="container py-5">
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <h5 class="brand-footer">MARKETO</h5>
+        <p class="text-muted small mt-2">취향 기반 맞춤형 쇼핑 플랫폼.<br>당신의 키워드로 원하는 상품을 찾아드립니다.</p>
+      </div>
+      <div class="col-lg-2">
+        <h6 class="fw-semibold mb-3">쇼핑</h6>
+        <ul class="list-unstyled small text-muted">
+          <li class="mb-1"><%= link_to "전체 상품", products_path, class: "footer-link" %></li>
+          <li class="mb-1"><%= link_to "신상품", new_arrivals_products_path, class: "footer-link" %></li>
+          <li class="mb-1"><%= link_to "인기 상품", popular_products_path, class: "footer-link" %></li>
+        </ul>
+      </div>
+      <div class="col-lg-2">
+        <h6 class="fw-semibold mb-3">고객센터</h6>
+        <ul class="list-unstyled small text-muted">
+          <li class="mb-1"><%= link_to "문의 게시판", inquiries_path, class: "footer-link" %></li>
+          <li class="mb-1"><%= link_to "자주 묻는 질문", faq_path, class: "footer-link" %></li>
+          <li class="mb-1"><%= link_to "이용약관", terms_path, class: "footer-link" %></li>
+        </ul>
+      </div>
+      <div class="col-lg-4">
+        <h6 class="fw-semibold mb-3">판매자 되기</h6>
+        <p class="small text-muted">지금 판매자로 등록하고 수백만 고객에게 상품을 소개하세요.</p>
+        <% if user_signed_in? && current_user.buyer? %>
+          <%= link_to "판매 시작하기", new_seller_registrations_path, class: "btn btn-sm btn-outline-light" %>
+        <% elsif user_signed_in? && current_user.seller? %>
+          <button class="btn btn-sm btn-outline-light" disabled>이미 판매자입니다</button>
+        <% else %>
+          <a href="javascript:void(0)" class="btn btn-sm btn-outline-light" onclick="alert('로그인이 필요합니다 😊'); return false;">판매 시작하기</a>
+        <% end %>
+      </div>
+    </div>
+    <hr class="border-secondary mt-4">
+    <p class="text-muted small text-center mb-0">© 2025 MARKETO. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
+</body>
+</html>

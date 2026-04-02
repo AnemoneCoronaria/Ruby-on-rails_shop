@@ -1,0 +1,47 @@
+<% content_for :title, "상품 관리" %>
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="section-title mb-0">상품 관리</h1>
+    <p class="text-muted mb-0">총 <%= @products.total_count %>개</p>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="bg-light">
+           <tr>
+            <th class="ps-4">ID</th>
+            <th>상품명</th>
+            <th>판매자</th>
+            <th>가격</th>
+            <th>재고</th>
+            <th>등록일</th>
+            <th class="pe-4">관리</th>
+           </tr>
+        </thead>
+        <tbody>
+          <% @products.each do |product| %>
+            <tr>
+              <td class="ps-4"><%= product.id %></td>
+              <td><%= link_to product.name, product_path(product), target: "_blank" %></td>
+              <td><%= product.seller.store_name || product.seller.name %></td>
+              <td><%= number_to_currency(product.price, unit: "₩", precision: 0) %></td>
+              <td><%= product.stock %></td>
+              <td><%= product.created_at.strftime("%Y.%m.%d") %></td>
+              <td class="pe-4">
+                <%= button_to admin_product_path(product), method: :delete, class: "btn btn-sm btn-outline-danger", data: { confirm: "정말 삭제하시겠습니까?" } do %>
+                  <i class="bi bi-trash"></i>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-center mt-4">
+    <%= paginate @products %>
+  </div>
+</div>

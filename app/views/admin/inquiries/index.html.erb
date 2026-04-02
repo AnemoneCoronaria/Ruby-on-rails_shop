@@ -1,0 +1,91 @@
+<% content_for :title, "문의 게시판" %>
+
+<div class="bg-brand-soft py-4 border-bottom">
+  <div class="container d-flex justify-content-between align-items-center">
+    <div>
+      <h1 class="section-title mb-1">문의 게시판</h1>
+      <p class="text-muted small mb-0">상품 구매, 환불, 기타 문의를 남겨주세요</p>
+    </div>
+    <% if user_signed_in? %>
+      <%= link_to new_inquiry_path, class: "btn btn-primary" do %>
+        <i class="bi bi-pencil-square me-1"></i>문의 작성
+      <% end %>
+    <% else %>
+      <%= link_to new_user_session_path, class: "btn btn-primary" do %>
+        <i class="bi bi-lock me-1"></i>로그인 후 문의
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<div class="container py-4">
+  <!-- Filter tabs -->
+  <div class="d-flex gap-2 mb-4 flex-wrap">
+    <%= link_to "전체", inquiries_path, class: "btn btn-sm #{params[:status].blank? ? 'btn-primary' : 'btn-outline-secondary'}" %>
+    <%= link_to "답변 대기", inquiries_path(status: 'open'), class: "btn btn-sm #{params[:status]=='open' ? 'btn-primary' : 'btn-outline-secondary'}" %>
+    <%= link_to "답변 완료", inquiries_path(status: 'answered'), class: "btn btn-sm #{params[:status]=='answered' ? 'btn-primary' : 'btn-outline-secondary'}" %>
+    <% if user_signed_in? %>
+      <%= link_to "내 문의만", my_inquiries_path, class: "btn btn-sm btn-outline-secondary ms-auto" %>
+    <% end %>
+  </div>
+
+  <!-- Search -->
+  <%= form_with url: inquiries_path, method: :get, local: true, class: "mb-4" do |f| %>
+    <div class="input-group" style="max-width:400px;">
+      <%= f.text_field :q, placeholder: "문의 내용 검색...", value: params[:q], class: "form-control" %>
+      <%= f.hidden_field :status, value: params[:status] %>
+      <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
+    </div>
+  <% end %>
+
+  <% if @inquiries.present? && @inquiries.any? %>
+    <% @inquiries.each do |inquiry| %>
+      <!-- 비공개 문의 필터링: 본인, 관리자, 판매자만 볼 수 있음 -->
+      <% if !inquiry.is_private || (user_signed_in? && (inquiry.user == current_user || current_user.admin? || current_user.seller?)) %>
+        <%= link_to inquiry_path(inquiry), class: "inquiry-row text-decoration-none" do %>
+          <div class="d-flex align-items-start gap-3">
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="inquiry-badge <%= inquiry.status %>">
+                  <%= inquiry.status == 'open' ? '답변 대기' : inquiry.status == 'answered' ? '답변 완료' : '처리 완료' %>
+                </span>
+                <% if inquiry.category.present? %>
+                  <span class="badge bg-light text-muted border" style="font-size:0.65rem;"><%= inquiry.category %></span>
+                <% end %>
+                <% if inquiry.is_private %>
+                  <span class="badge bg-secondary" style="font-size:0.65rem;">
+                    <i class="bi bi-lock"></i> 비공개
+                  </span>
+                <% end %>
+              </div>
+              <h6 class="mb-1 fw-semibold" style="font-size:0.95rem;">
+                <% if inquiry.is_private %>
+                  <i class="bi bi-lock me-1"></i>
+                <% end %>
+                <%= inquiry.title %>
+              </h6>
+              <p class="text-muted small mb-0 text-truncate" style="max-width:600px;"><%= inquiry.content %></p>
+            </div>
+            <div class="text-end text-muted small flex-shrink-0">
+              <p class="mb-0"><%= inquiry.user.name %></p>
+              <p class="mb-0"><%= inquiry.created_at.strftime("%Y.%m.%d") %></p>
+              <% if inquiry.answers.any? %>
+                <p class="mb-0 text-primary"><i class="bi bi-chat-dots me-1"></i><%= inquiry.answers.count %></p>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    <% end %>
+
+    <div class="d-flex justify-content-center mt-4">
+      <%= paginate @inquiries %>
+    </div>
+  <% else %>
+    <div class="empty-state">
+      <i class="bi bi-chat-square-text empty-icon d-block"></i>
+      <h5>문의가 없습니다</h5>
+      <p class="text-muted small">첫 번째 문의를 남겨보세요!</p>
+    </div>
+  <% end %>
+</div>
