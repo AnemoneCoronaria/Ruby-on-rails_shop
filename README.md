@@ -15,6 +15,11 @@ Rails 8.1.3, Ruby 3.2.3 환경에서 개발되었습니다.
 - SQLite (이미 테스트 데이터가 삽입됨)
 - Git
 
+### 개발 환경 세팅은 밑에 서술해두었지만 우선 꼭 공식 사이트를 참고할 것
+https://www.ruby-lang.org/ko/
+
+https://rubyonrails.org/
+
 ### Ubuntu 환경 세팅
 ```bash
 sudo apt update
