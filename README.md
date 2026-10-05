@@ -4,6 +4,8 @@
 ## 프로젝트 개요
 Ruby on Rails 기반 쇼핑몰 프로젝트입니다.  
 Rails 8.1.3, Ruby 3.2.3 환경에서 개발되었습니다.
+배포는 fly.io에서 진행했습니다.
+https://shop-proud-meadowbrook-475.fly.dev
 
 ---
 
